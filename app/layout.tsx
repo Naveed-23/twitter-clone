@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { Inter } from 'next/font/google';
+import { GoogleOAuthProvider } from "@react-oauth/google";
+import { Toaster } from "react-hot-toast";
+
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -32,7 +35,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <div className={inter.className}>
-        {children}
+          <GoogleOAuthProvider clientId="660015666152-gaipnd4gmjk5q16hq466g7blscb3rj7e.apps.googleusercontent.com">
+            {children}
+            <Toaster />
+          </GoogleOAuthProvider>
         </div>
       </body>
     </html>
