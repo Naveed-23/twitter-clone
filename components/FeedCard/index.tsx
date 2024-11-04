@@ -1,4 +1,5 @@
 import Image from "next/image"
+import Link from "next/link"
 import React from "react"
 import { AiOutlineHeart } from "react-icons/ai"
 import { BiMessageRounded, BiUpload } from "react-icons/bi"
@@ -35,7 +36,7 @@ const FeedCard: React.FC<FeedCardProps> = (props) => {
                 {data.author?.profileImageURL && <Image src={data.author.profileImageURL} alt="user-image" height={50} width={50} className="rounded-full" />}
             </div>
             <div className="col-span-11">
-                {<h5>{data.author?.firstName} {data.author?.lastName}</h5>}
+                {<Link href={`${data.author?.id}`}>{data.author?.firstName} {data.author?.lastName}</Link>}
                 <p>{data.content}</p>
                 <div className="flex justify-between mt-5 text-lg items-center p-2 w-[90%]">
                     <div>
