@@ -38,6 +38,18 @@ const FeedCard: React.FC<FeedCardProps> = (props) => {
             <div className="col-span-11">
                 {<Link href={`${data.author?.id}`}>{data.author?.firstName} {data.author?.lastName}</Link>}
                 <p>{data.content}</p>
+                {data.imageURL && (
+                <div className="mt-3">
+                <Image
+                    src={data.imageURL}
+                    alt="tweet-image"
+                    height={300}
+                    width={500}
+                    className="rounded-md"
+                    style={{ objectFit: "cover" }}
+                />
+                </div>
+                )}
                 <div className="flex justify-between mt-5 text-lg items-center p-2 w-[90%]">
                     <div>
                         <BiMessageRounded />

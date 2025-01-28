@@ -5,16 +5,17 @@ import { BsBell, BsBookmark, BsEnvelope, BsTwitter } from "react-icons/bs";
 import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
 import { SlOptions } from "react-icons/sl";
 import { useCurrentUser } from "@/hooks/user";
-import { useCallback, useMemo } from "react";
+import { ReactNode, useCallback, useMemo } from "react";
 import toast from "react-hot-toast";
 import { graphqlClient } from "@/clients/api";
 import { verifyUserGoogleTokenQuery } from "@/graphql/query/user";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
+import { authenticateWithGoogle } from "@/supabase/authenticateWithGoogle";
 
 
 interface TwitterLayoutProps {
-    children: React.ReactNode;
+  children: ReactNode;
 }
 
 interface TwitterSidebarButton {
@@ -71,29 +72,38 @@ const TwitterLayout: React.FC<TwitterLayoutProps> = (props) => {
         icon: <SlOptions />,
         link: '/'
       }
-    ], [user?.id]); 
+    ], [user?.id]);
+
+ 
 
     const handleLoginWithGoogle = useCallback(async (cred: CredentialResponse) => {
-        const googleToken = cred.credential
-    
-        if(!googleToken) return toast.error(`Google token not found`);
-    
-        const { verifyGoogleToken } = await graphqlClient.request(verifyUserGoogleTokenQuery, {token: googleToken});
-    
-        toast.success(`Verified Success`)
-    
-        console.log(verifyGoogleToken);
-    
-        if(verifyGoogleToken) window.localStorage.setItem('__twitter_token', verifyGoogleToken);
-    
-        await queryClient.invalidateQueries({ queryKey: ['current-user'] });
-    
+      try {
+        const googleToken = cred.credential;
+        if (!googleToken) throw new Error("Google token not found");
+        
+        const { verifyGoogleToken } = await graphqlClient.request(verifyUserGoogleTokenQuery, { token: googleToken });
+        if (!verifyGoogleToken) throw new Error("Failed to verify Google token");
+
+        toast.success("Verified Successfully");
+        window.localStorage.setItem("__twitter_token", verifyGoogleToken);
+
+        const session = await authenticateWithGoogle(googleToken);
+        if (!session) throw new Error("No Supabase session found");
+
+        await queryClient.invalidateQueries({ queryKey: ["current-user"] });
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+            toast.error(error.message || "An error occurred during login.");
+        } else {
+            toast.error("An unknown error occurred during login.");
+        }
+      }
     
       }, [queryClient]);
 
 
     return <div className="grid grid-cols-12 h-screen w-screen sm:px-56">
-    <div className="col-span-2 sm:col-span-3 pt-1 flex sm:justify-end pr-4 relative">
+    <div className="col-span-2 lg:col-span-3 pt-1 flex sm:justify-end pr-4 relative">
     <div>
         <div className="text-2xl h-fit w-fit hover:bg-gray-800 rounded-full p-3 cursor-pointer transition-all">
             <BsTwitter />
@@ -102,7 +112,7 @@ const TwitterLayout: React.FC<TwitterLayoutProps> = (props) => {
         <ul>
         {sidebarMenuItems.map((item) => (
         <li key={item.title}>
-          <Link className="flex justify-start items-center gap-4 hover:bg-gray-800 rounded-full px-3 py-3 w-fit cursor-pointer mt-2" href={item.link}>
+          <Link className="flex justify-start items-center gap-4 hover:bg-gray-800 rounded-full px-3 py-2 w-fit cursor-pointer mt-2" href={item.link}>
             <span className="text-3xl">{item.icon}</span>
             <span className="hidden sm:inline">{item.title}</span>
           </Link>
@@ -119,12 +129,12 @@ const TwitterLayout: React.FC<TwitterLayoutProps> = (props) => {
     </div>
     </div>
     { user && (
-    <div className="absolute bottom-5 flex gap-2 items-center bg-slate-800 px-3 py-2 rounded-full">
-      {user?.profileImageURL && (<Image className="rounded-full" src={user?.profileImageURL} alt='user-image' height={50} width={50} />)}
+    <div className="absolute bottom-5 flex gap-2 items-center bg-slate-800 px-2 py-2 rounded-full">
+      {user?.profileImageURL && (<Image className="rounded-full" src={user?.profileImageURL} alt='user-image' height={40} width={40} />)}
       <div className="hidden sm:block">
-      <h3 className="text-xl">
+      <h4 className="text-md">
       {user?.firstName} {user?.lastName } 
-        </h3>
+        </h4>
       </div>
     </div>
     )}
@@ -132,11 +142,27 @@ const TwitterLayout: React.FC<TwitterLayoutProps> = (props) => {
     <div className="col-span-10 sm:col-span-5 border-r-[1px] border-l-[1px] h-screen overflow-scroll border-gray-600 hide-scrollbar">
         {props.children}
     </div>
-    <div className="cpl-span-0 sm:col-span-3 p-5">
-     {!user && <div className="border p-5 bg-slate-700 rounded-lg">
+    <div className="hidden sm:block sm:col-span-4 lg:col-span-4 p-5 w-full">
+     {!user && (<div className="border p-5 bg-slate-700 rounded-lg">
         <h1 className="my-2 text-2xl">New to Twitter</h1>
         <GoogleLogin onSuccess={handleLoginWithGoogle} />
-      </div>}
+      </div>) }
+      <div className="px-4 py-3 bg-slate-800 rounded-lg">
+        <h1 className="my-2 text-lg font-extrabold mb-5">Users You May Know</h1>
+        {user?.recommendedUsers?.map((el) => (
+          <div className="flex items-center gap-3 mt-2" key={el?.id}>
+            {el?.profileImageURL && (
+              <Image className="rounded-full" src={el?.profileImageURL} alt="user-image" width={40} height={40} />
+            )}
+            <div>
+              <div className="text-sm">
+              <span>{el?.firstName} {el?.lastName}</span>
+              </div>
+              <Link href={`/${el?.id}`} className="bg-white text-black w-full text-sm px-2 py-1 rounded-lg">View</Link>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   </div>
 }

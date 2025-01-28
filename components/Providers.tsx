@@ -1,5 +1,4 @@
 "use client";
-
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { Toaster } from "react-hot-toast";
