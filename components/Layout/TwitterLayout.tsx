@@ -173,24 +173,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useCallback, useState, ReactNode } from "react";
+import { useMemo, useCallback, ReactNode } from "react";
 import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
-import {
-  BiHash,
-  BiHomeCircle,
-  BiMoney,
-  BiUser
-} from "react-icons/bi";
-import {
-  BsBell,
-  BsBookmark,
-  BsEnvelope,
-  BsTwitter
-} from "react-icons/bs";
+import { BiHash, BiHomeCircle, BiMoney, BiUser } from "react-icons/bi";
+import { BsBell, BsBookmark, BsEnvelope, BsTwitter } from "react-icons/bs";
 import { SlOptions } from "react-icons/sl";
-import { X } from "lucide-react";
 
 import { useCurrentUser } from "@/hooks/user";
 import { graphqlClient } from "@/clients/api";
@@ -210,7 +199,6 @@ interface TwitterSidebarButton {
 const TwitterLayout: React.FC<TwitterLayoutProps> = ({ children }) => {
   const { user } = useCurrentUser();
   const queryClient = useQueryClient();
-  const [isModalOpen, setModalOpen] = useState(false);
 
   const sidebarMenuItems: TwitterSidebarButton[] = useMemo(
     () => [
@@ -246,7 +234,6 @@ const TwitterLayout: React.FC<TwitterLayoutProps> = ({ children }) => {
         if (!session) throw new Error("No Supabase session found");
 
         await queryClient.invalidateQueries({ queryKey: ["current-user"] });
-        setModalOpen(false);
       } catch (error: unknown) {
         if (error instanceof Error) {
           toast.error(error.message || "An error occurred during login.");
@@ -259,127 +246,147 @@ const TwitterLayout: React.FC<TwitterLayoutProps> = ({ children }) => {
   );
 
   return (
-    <>
-      {/* Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
-          <div className="bg-slate-800 p-6 rounded-lg relative w-80 sm:w-96">
-            <button
-              className="absolute top-2 right-2 text-white hover:text-gray-300"
-              onClick={() => setModalOpen(false)}
-            >
-              <X size={20} />
-            </button>
-            <h2 className="text-2xl mb-4 text-white font-bold">Log in with Google</h2>
-            <GoogleLogin onSuccess={handleLoginWithGoogle} />
+    <div className="grid grid-cols-12 h-screen w-screen sm:px-56">
+      {/* Sidebar */}
+      <div className="col-span-2 lg:col-span-3 pt-1 flex sm:justify-end pr-4 relative">
+        <div>
+          <div className="text-2xl h-fit w-fit hover:bg-gray-800 rounded-full p-3 cursor-pointer transition-all">
+            <BsTwitter />
           </div>
-        </div>
-      )}
-
-      <div className="grid grid-cols-12 h-screen w-screen sm:px-56">
-        {/* Sidebar */}
-        <div className="col-span-2 lg:col-span-3 pt-1 flex sm:justify-end pr-4 relative">
-          <div>
-            <div className="text-2xl h-fit w-fit hover:bg-gray-800 rounded-full p-3 cursor-pointer transition-all">
-              <BsTwitter />
-            </div>
-            <div className="mt-2 text-xl pr-4">
-              <ul>
-                {sidebarMenuItems.map((item) => (
-                  <li key={item.title}>
-                    <Link
-                      href={item.link}
-                      className="flex justify-start items-center gap-4 hover:bg-gray-800 rounded-full px-3 py-2 w-fit cursor-pointer mt-2"
-                    >
-                      <span className="text-3xl">{item.icon}</span>
-                      <span className="hidden sm:inline">{item.title}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-5 px-3">
-                <button className="hidden sm:block bg-[#1d9aef] font-semibold text-lg px-4 py-2 rounded-full w-full">
-                  Tweet
-                </button>
-                <button className="block sm:hidden bg-[#1d9aef] font-semibold text-lg px-4 py-2 rounded-full w-full">
-                  <BsTwitter />
-                </button>
-              </div>
-            </div>
-
-            {user && (
-              <div className="absolute bottom-5 flex gap-2 items-center bg-slate-800 px-2 py-2 rounded-full">
-                {user.profileImageURL && (
-                  <Image
-                    className="rounded-full"
-                    src={user.profileImageURL}
-                    alt="user-image"
-                    height={40}
-                    width={40}
-                  />
-                )}
-                <div className="hidden sm:block">
-                  <h4 className="text-md">
-                    {user.firstName} {user.lastName}
-                  </h4>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="col-span-10 sm:col-span-5 border-r-[1px] border-l-[1px] h-screen overflow-scroll border-gray-600 hide-scrollbar relative">
-          {/* Top right login button */}
-          {!user && (
-            <div className="absolute top-4 right-4 z-10">
-              <button
-                onClick={() => setModalOpen(true)}
-                className="bg-white text-black px-4 py-2 rounded-full font-semibold hover:bg-gray-200 transition"
-              >
-                Login
+          <div className="mt-2 text-xl pr-4">
+            <ul>
+              {sidebarMenuItems.map((item) => (
+                <li key={item.title}>
+                  <Link
+                    href={item.link}
+                    className="flex justify-start items-center gap-4 hover:bg-gray-800 rounded-full px-3 py-2 w-fit cursor-pointer mt-2"
+                  >
+                    <span className="text-3xl">{item.icon}</span>
+                    <span className="hidden sm:inline">{item.title}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-5 px-3">
+              <button className="hidden sm:block bg-[#1d9aef] font-semibold text-lg px-4 py-2 rounded-full w-full">
+                Tweet
+              </button>
+              <button className="block sm:hidden bg-[#1d9aef] font-semibold text-lg px-4 py-2 rounded-full w-full">
+                <BsTwitter />
               </button>
             </div>
-          )}
-          {children}
-        </div>
+          </div>
 
-        {/* Right Sidebar */}
-        <div className="hidden sm:block sm:col-span-4 lg:col-span-4 p-5 w-full">
-          {Array.isArray(user?.recommendedUsers) && user?.recommendedUsers?.length > 0 && (
-            <div className="px-4 py-3 bg-slate-800 rounded-lg">
-              <h1 className="my-2 text-lg font-extrabold mb-5">Users You May Know</h1>
-              {user.recommendedUsers.map((el) =>
-                el ? (
-                  <div className="flex items-center gap-3 mt-2" key={el.id}>
-                    {el.profileImageURL && (
-                      <Image
-                        className="rounded-full"
-                        src={el.profileImageURL}
-                        alt="user-image"
-                        width={40}
-                        height={40}
-                      />
-                    )}
-                    <div>
-                      <div className="text-sm">
-                        {el.firstName} {el.lastName}
-                      </div>
-                      <Link
-                        href={`/${el.id}`}
-                        className="bg-white text-black text-sm px-2 py-1 rounded-lg"
-                      >
-                        View
-                      </Link>
-                    </div>
-                  </div>
-                ) : null
+          {user && (
+            <div className="absolute bottom-5 flex gap-2 items-center bg-slate-800 px-2 py-2 rounded-full">
+              {user.profileImageURL && (
+                <Image
+                  className="rounded-full"
+                  src={user.profileImageURL}
+                  alt="user-image"
+                  height={40}
+                  width={40}
+                />
               )}
+              <div className="hidden sm:block">
+                <h4 className="text-md">
+                  {user.firstName} {user.lastName}
+                </h4>
+              </div>
             </div>
           )}
         </div>
       </div>
-    </>
+
+      {/* Main Content */}
+      <div className="col-span-10 sm:col-span-5 border-r-[1px] border-l-[1px] h-screen overflow-scroll border-gray-600 hide-scrollbar">
+        {children}
+      </div>
+
+      {/* Right Sidebar */}
+      <div className="hidden sm:block sm:col-span-4 lg:col-span-4 p-5 w-full">
+        {!user && (
+          <div className="border p-5 bg-slate-700 rounded-lg">
+            <h1 className="my-2 text-2xl">New to Twitter</h1>
+            <GoogleLogin onSuccess={handleLoginWithGoogle} />
+          </div>
+        )}
+
+        {Array.isArray(user?.recommendedUsers) && user?.recommendedUsers?.length > 0 && (
+          <div className="px-4 py-3 bg-slate-800 rounded-lg">
+            <h1 className="my-2 text-lg font-extrabold mb-5">Users You May Know</h1>
+            {user.recommendedUsers.map((el) =>
+              el ? (
+                <div className="flex items-center gap-3 mt-2" key={el.id}>
+                  {el.profileImageURL && (
+                    <Image
+                      className="rounded-full"
+                      src={el.profileImageURL}
+                      alt="user-image"
+                      width={40}
+                      height={40}
+                    />
+                  )}
+                  <div>
+                    <div className="text-sm">
+                      {el.firstName} {el.lastName}
+                    </div>
+                    <Link
+                      href={`/${el.id}`}
+                      className="bg-white text-black text-sm px-2 py-1 rounded-lg"
+                    >
+                      View
+                    </Link>
+                  </div>
+                </div>
+              ) : null
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Mobile Bottom Section */}
+      <div className="sm:hidden col-span-12 p-4">
+        {!user && (
+          <div className="border p-4 bg-slate-700 rounded-lg">
+            <h1 className="text-lg mb-2">New to Twitter</h1>
+            <GoogleLogin onSuccess={handleLoginWithGoogle} />
+          </div>
+        )}
+
+        {Array.isArray(user?.recommendedUsers) && user?.recommendedUsers?.length > 0 && (
+          <div className="mt-4 bg-slate-800 p-4 rounded-lg">
+            <h1 className="text-lg font-bold mb-4">Users You May Know</h1>
+            {user.recommendedUsers.map((el) =>
+              el ? (
+                <div className="flex items-center gap-3 mt-3" key={el.id}>
+                  {el.profileImageURL && (
+                    <Image
+                      className="rounded-full"
+                      src={el.profileImageURL}
+                      alt="user-image"
+                      width={40}
+                      height={40}
+                    />
+                  )}
+                  <div>
+                    <p className="text-sm font-medium">
+                      {el.firstName} {el.lastName}
+                    </p>
+                    <Link
+                      href={`/${el.id}`}
+                      className="text-xs text-black bg-white px-2 py-1 rounded-md"
+                    >
+                      View
+                    </Link>
+                  </div>
+                </div>
+              ) : null
+            )}
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 
