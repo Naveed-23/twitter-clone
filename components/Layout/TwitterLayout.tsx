@@ -312,7 +312,7 @@ const TwitterLayout: React.FC<TwitterLayoutProps> = ({ children }) => {
           </div>
         )}
 
-        {Array.isArray(user?.recommendedUsers) && user?.recommendedUsers?.length > 0 && (
+        {Array.isArray(user?.recommendedUsers) && user?.recommendedUsers?.length >= 0 && (
           <div className="px-4 py-3 bg-slate-800 rounded-lg">
             <h1 className="my-2 text-lg font-extrabold mb-5">Users You May Know</h1>
             {user.recommendedUsers.map((el) =>
